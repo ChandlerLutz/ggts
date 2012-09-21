@@ -1,4 +1,4 @@
-The ggts package allows for easy time series visualization via ggplot2 using dataframes, ts, zoo, and xts objects.  The main functions, `ggts` and `ggts_facet`, allow for easy variable selection, bear market or recession shading, different colored lines, and easy saving.  Users can easily add customized shading via the `shade()` function.
+The ggts package allows for easy time series visualization of dataframes, ts, zoo, and xts objects via ggplot2.  The main functions, `ggts` and `ggts_facet`, allow for easy variable selection, bear market or recession shading, different colored lines, and easy saving.  Users can easily add customized shading via the `shade()` function.
 
 Instillation and Usage:
 
@@ -13,6 +13,12 @@ Instillation and Usage:
 	     ggts(USMacroSW,variables=c("ffrate","tbill","tbond"),color=TRUE,recession=TRUE,names=c("Fed Funds","T-Bill","T-Bond"))
 	     ggts_facet(USMacroSW)
 	     ggts_facet(USMacroSW,recession=TRUE)
+
+	     #Using the quantmod package
+	     library(quantmod)
+	     getSymbols("^VIX")
+	     class(VIX)  # "xts" "zoo"
+	     ggts(VIX,"VIX.Close",bear=TRUE)
 	     
 
 A comparison to Hadley Whickam's ggplot2 book (P. 164-166):
@@ -60,4 +66,4 @@ A comparison to Hadley Whickam's ggplot2 book (P. 164-166):
   first column must be a date object labeled "time"
 
 Chandler Lutz
-cl.eco@cbs.dk
+http://chandlerlutz.com/
