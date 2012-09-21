@@ -1,5 +1,27 @@
-ggts_facet <-
-function(data,variables=NULL,bear=FALSE,recession=FALSE,
+##' Faceted time series plots
+##'
+##' @param data the data to be plotted. Either a dataframe with first column labeled time (a date object), a ts or mts object, zoo object, or xts object. Intraday data is not currently supported
+##' @param variables a character of the variables to be graphed. If set to NULL, all variables will be graphed
+##' @param dates set to TRUE if the objects has dates. Default is TRUE
+##' @param bear set to TRUE if bear markets are to be shaded
+##' @param recession set to TRUE if recessions are to be shaded
+##' @param theme the theme for the graph.  Default is theme_bw()
+##' @param filename the location to save the graph
+##' @param dpi the dpi to use for raster graphics. 600 for publication quality graphics.
+##' @return a ggplot2 object
+##' @export
+##' @seealso \code{\link{ggts}}
+##' @examples
+##' #USMacroSW from the AER package is an "mts" object
+##' data(USMacroSW)
+##' ggts_facet(USMacroSW)
+##' ggts_facet(USMacroSW,bear=TRUE)
+##' ggts_facet(USMacroSW,recession=TRUE)
+##' #If both bear and recession are set to TRUE, bear markets
+##' #will be blue and recessions will be grey.
+##' ggts_facet(USMacroSW,bear=TRUE,recession=TRUE)
+##' @author Chandler Lutz \email{cl.eco@@cbs.dk}
+ggts_facet <- function(data,variables=NULL,bear=FALSE,recession=FALSE,
                        dates=TRUE,theme=theme_bw(),filename=NULL,
                        dpi=600) {
     # plot.facet <- ggplot_ts_facet(data)
@@ -11,6 +33,7 @@ function(data,variables=NULL,bear=FALSE,recession=FALSE,
     #
     # User-specified inputs:
     #     data -- data frame or time series object
+    #     variables --
     #
     # User-requested output:
     #     plot.facet -- the facet plot containing all time series
@@ -18,6 +41,9 @@ function(data,variables=NULL,bear=FALSE,recession=FALSE,
     # Note: this function depends on as.time.series.dataframe(),
     # as.Date.ts(), and ggplot2
 
+    #load the data for the bear markets and recessions
+    data(bear_dates)
+    data(recession_dates)
 
     shade_color <- c("#003F87","grey50")
 

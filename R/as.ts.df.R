@@ -20,29 +20,6 @@
 ##' as.ts.df(AirPassengers)
 ##' @author Chandler Lutz \email{cl.eco@@cbs.dk}
 as.ts.df <- function(ts_obj,date_col=TRUE) {
-    # dataframe <- as.time.series.dataframe(ts_obj,date_col=FALSE)
-    #
-    # Converts a time series object to a dataframe. The
-    # first column of the new data frame hold the time/date
-    # This column is labeled "time"
-    # If date_col is set to true the time column will be
-    # in date form using the as.Date function
-    # If date_col is set to FALSE then the returned date will
-    # be a time series object
-    #
-    # User-specified inputs:
-    #    ts_obj -- the time series object to be converted into a dataframe
-    #    date_col -- Flag variable. If TRUE, then time variable is of type
-    #                "Date". If FALSE, then the time varible is of type "ts"
-    #                The default value is FALSE
-    #
-    # User-requested outputs:
-    #    dataframe -- the converted object of type "dataframe" If the
-    #                 orginial obect is not of type "ts", then it is
-    #                 returned in its original form
-    #
-    # Note: this function depends on as.Date.ts()
-
 
     #Check to make sure we have a ts object
     if (is.ts(ts_obj)) {

@@ -24,22 +24,6 @@
 ggts_facet <- function(data,variables=NULL,bear=FALSE,recession=FALSE,
                        dates=TRUE,theme=theme_bw(),filename=NULL,
                        dpi=600) {
-    # plot.facet <- ggplot_ts_facet(data)
-    #
-    # This function creates a facet plot for all time series in
-    # a time series object or a dataframe with a time column.
-    # If the data is a dataframe, it must have a time column
-    # labeled "time".
-    #
-    # User-specified inputs:
-    #     data -- data frame or time series object
-    #     variables --
-    #
-    # User-requested output:
-    #     plot.facet -- the facet plot containing all time series
-    #
-    # Note: this function depends on as.time.series.dataframe(),
-    # as.Date.ts(), and ggplot2
 
     #load the data for the bear markets and recessions
     data(bear_dates)
