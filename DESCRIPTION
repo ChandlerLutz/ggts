@@ -1,0 +1,37 @@
+Package: ggts
+Type: Package
+Title: Easy time series visualization
+Version: 0.0.1.0
+Date: 2012-09-16
+Author: Chandler Lutz
+Maintainer: Chandler Lutz <cl.eco@cbs.dk>
+Description: This package provides easy time series visualization via ggplot2.
+    The ggts package plots ts, zoo, and xts objects; implements bear market,
+    recession, or other shading; and allows for standard or faceted plots.
+    POSIXct and POSIXt dates are currently not supported.
+License: GPL-2 | GPL-3
+Depends:
+    graphics,
+    grDevices,
+    stats,
+    utils,
+    AER,
+    zoo,
+    xts,
+    scales,
+    reshape2,
+    ggplot2 (>= 0.9.2.1),
+    R (>= 2.15.1)
+Collate:
+    'as.ts.df.R'
+    'as.zoo.df.R'
+    'ggts-internal.R'
+    'ggts.R'
+    'ggts_facet.R'
+    'shade.R'
+    'std.R'
+    'AAPL.data.R'
+    'bear_dates.R'
+    'djia.data.R'
+    'recession_dates.R'
+    'ggts-package.R'

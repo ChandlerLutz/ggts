@@ -1,0 +1,87 @@
+ggts_facet <-
+function(data,variables=NULL,bear=FALSE,recession=FALSE,
+                       dates=TRUE,theme=theme_bw(),filename=NULL,
+                       dpi=600) {
+    # plot.facet <- ggplot_ts_facet(data)
+    #
+    # This function creates a facet plot for all time series in
+    # a time series object or a dataframe with a time column.
+    # If the data is a dataframe, it must have a time column
+    # labeled "time".
+    #
+    # User-specified inputs:
+    #     data -- data frame or time series object
+    #
+    # User-requested output:
+    #     plot.facet -- the facet plot containing all time series
+    #
+    # Note: this function depends on as.time.series.dataframe(),
+    # as.Date.ts(), and ggplot2
+
+
+    shade_color <- c("#003F87","grey50")
+
+    #Make sure data is a dataframe
+    if (!is.data.frame(data)) {
+
+        if (!(class(data)[1] %in% c("ts","mts","zoo","xts"))) {
+            stop("Data needs to be a dataframe, ts, mts, zoo, or xts object")
+        }
+
+        #Not a dataframe
+        #turn into a dataframe
+        if (dates) {
+            if (class(data) == "ts" || class(data) == "mts")
+                data <- as.ts.df(data)
+            else
+                data <- as.zoo.df(data)
+        } else {
+            data <- data.frame(time=time(data),data.frame(data))
+        }
+
+    }
+
+    #Re-name the first column -- this should hold the dates
+    names(data)[1] <- "time"
+
+    if (!is.null(variables)) {
+        data <- data[,c("time",variables)]
+    }
+
+    if (ncol(data) == 2) {
+        return (ggts(data))
+    }
+
+    #require ggplot2, etc.
+    require(ggplot2); require(reshape2);
+
+
+    vars <- c(names(data)[2:length(names(data))])
+    num.vars <- length(vars)+1
+    data.melt <- melt(data,id="time",measure=vars)
+    plot.facet <- qplot(time,value,data=data.melt,geom="line") +
+        facet_grid(variable ~., scales="free_y") + theme
+
+    x <- c(data$time[1],data$time[length(data$time)])
+    x_scale <- scale_x_date(lim=x)
+    if (bear && recession) {
+        plot.facet <- plot.facet + x_scale +
+            shade(bear_dates,shade_color[1],xrng=x) +
+            shade(recession_dates,shade_color[2],xrng=x)
+    } else if (bear) {
+        plot.facet <- plot.facet + x_scale +
+            shade(bear_dates,color=shade_color[1],xrng=x)
+    } else if (recession) {
+        plot.facet <- plot.facet + x_scale +
+            shade(recession_dates,color=shade_color[1],xrng=x)
+    }
+
+    if (!is.null(filename)) {
+        #save the file
+        ggsave(file=filename,plot=plot.facet,dpi=dpi,width=7.82,
+               height=4.66)
+    }
+
+    return(plot.facet)
+
+}
