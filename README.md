@@ -2,8 +2,10 @@ The ggts package allows for easy time series visualization of
 dataframes, ts, zoo, and xts objects via ggplot2.  The main functions,
 `ggts`, `ggts_facet`, and `geom_cycle` allow for easy variable
 selection, different linetypes and colors, standardizing or indexing,
-and shading of cycles such as rececessions or bear markets. See below
-and `?ggts` `?ggts_facet`, and `?geom_cycle` for more examples.
+and shading of cycles such as rececessions or bear markets. 
+
+See below and `?ggts` `?ggts_facet`, and `?geom_cycle` for more
+examples. 
 
 # Main Functions
 
