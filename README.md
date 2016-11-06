@@ -1,54 +1,8 @@
-The ggts package allows for easy time series visualization of dataframes, ts, zoo, and xts objects via ggplot2.  The main functions, `ggts` and `ggts_facet`, allow for easy variable selection, bear market or recession shading, different colored lines, and easy saving.  Users can easily add customized shading via the `shade()` function.
-
-Instillation and Usage:
-
-	     #install.packages("devtools")
-	     library(devtools)
-	     install_github("ggts",username="ChandlerLutz")
-	     library(ggts)
-	     
-	     data(djia.data)
-	     ggts(djia.data,bear=TRUE)
-	     data("USMacroSW")
-	     ggts(USMacroSW,variables=c("ffrate","tbill","tbond"),color=TRUE,recession=TRUE,names=c("Fed Funds","T-Bill","T-Bond"))
-	     ggts_facet(USMacroSW)
-	     ggts_facet(USMacroSW,recession=TRUE)
-
-	     #Using the quantmod package
-	     library(quantmod)
-	     getSymbols("^VIX")
-	     class(VIX)  # "xts" "zoo"
-	     ggts(VIX,"VIX.Close",bear=TRUE)
-	     
-
-A comparison to Hadley Whickam's ggplot2 book (P. 164-166):
-  	     
-	     data(economics)
-  	     ## From Hadley's book ##
-	     require(ggplot2)
-	     require(plyr)
-	     require(reshape)
-	     emp <- melt(economics, id = "date",measure = c("unemploy", "uempmed"))
-	     
-	     range01 <- function(x) {
-	     	     rng <- range(x, na.rm = TRUE)
-		     (x - rng[1]) / diff(rng)
-	     }
-	     emp2 <- ddply(emp, .(variable), transform, value = range01(value))
-	     #Regular plot
-	     qplot(date, value, data = emp2, geom = "line",colour = variable, linetype = variable)
-	     #faceted plot
-	     qplot(date, value, data = emp, geom = "line") + facet_grid(variable ~ ., scales = "free_y")
-	     
-	     ## Using the ggts package ##
-	     require(ggts)
-	     #Note: we only need a slightly modified version of the original `economics` dataset
-	     names(economics)[1] <- "time"
-	     #Regular Plot
-	     ggts(economics,variables=c("uempmed","unemploy"),color=TRUE,standardize=TRUE)
-	     #Faceted plot
-	     ggts_facet(economics,variables=c("uempmed","unemploy"))
-	     
+The ggts package allows for easy time series visualization of
+dataframes, ts, zoo, and xts objects via ggplot2.  The main functions,
+`ggts`, `ggts_facet`, and `geom_cycle` allow for easy variable
+selection, different linetypes and colors, standardizing or indexing,
+and shading of cycles such as rececessions or bear markets.
 
 # Main Functions
 
@@ -56,14 +10,101 @@ A comparison to Hadley Whickam's ggplot2 book (P. 164-166):
 
 * `ggts_facet` to plot multiple time series using faceting
 
-* `shade` to add customized shading to a ggplot2 time series
+* `geom_cycle` to add customized (e.g. NBER recession) shading to a ggplot2 plot
 
-# Notes
 
-* Intraday data is currently not supported
+# Instillation and Usage:
 
-* If a dataframe is passed to `ggts` or `ggts_facet`, then the 
-  first column must be a date object labeled "time"
+	     #install.packages("devtools")
+	     library(devtools)
+	     install_github(username="ChandlerLutz/ggts")
+	     library(ggts)
+
+	     data(AirPassengers) ##A ts object
+	     ggts(djia.data,bear=TRUE)
+	     ggts(AirPassengers)
+
+		 library(AER)
+		 data(USMacroSW)  ##a mts object
+		 ggts(USMacroSW, ffrate, tbill, tbond)
+		 ##Index values for CPI and Japanese GDP from SW datasets
+		 ggts(USMacroSW, cpi, gdpjp, index = TRUE)
+		 ##Standardized unemployment rate and Pound/Dollar exchange rate
+		 ggts(USMacroSW, cpi, gdpjp, standardize = TRUE)
+
+		 ##Can also easily plot a faceted graph
+		 ##This is handy for plotting several time series
+		 ggts_facet(USMacroSW)
+
+		 library(xts)
+		 data(AAPL.data) ##xts object
+		 ##Plot everything but volume using dplyr matches helper function.
+         ##Note that all dplyr select helper functions can be used, but
+		 ##either dplyr must be attached or the package explicitly
+		 referenced
+		 ##(below example)
+		 ggts(AAPL.data, -dplyr::matches("Volume"))
+
+		 ##If we have a randomly placed time column in a dataframe
+		 ##ggts will find it
+		 USMacroSW2 <- as_ts_df(USMacroSW)[, c("ffrate",
+		                                        "tbill",
+												"time",
+												"tbond")]
+	     names(USMacroSW2)[3] <- "date"
+		 ggts(USMacroSW2)
+
+	     ##geom_cycle() will automatically plot NBER recessions
+		 ##This is the default cycle
+		 ggts_facet(USMacroSW) + geom_cycle()
+		 ##Can also plot bear market dates
+		 data(bear_dates)
+		 ggts_facet(USMacroSW) + geom_cycle(dates = bear_dates)
+	     ##Or both recessions and bear markets
+		 ggts_facet(USMacroSW) + geom_cycle() +
+		     geom_cycle(dates=bear_dates, fill="grey50")
+
+
+	     #Using the quantmod package
+	     library(quantmod)
+		 data(bear_dates)
+	     getSymbols("^VIX")
+	     class(VIX)  # "xts" "zoo"
+	     ggts(VIX, VIX.Close) + geom_cycle(dates = bear_dates)
+
+
+# A comparison to Hadley Whickam's ggplot2 book  (first ed, p. 164-166):
+
+	     data(economics)
+  	     ## From Hadley's book ##
+	     require(ggplot2)
+	     require(plyr)
+	     require(reshape)
+	     emp <- melt(economics, id = "date",measure = c("unemploy", "uempmed"))
+
+	     range01 <- function(x) {
+	     	     rng <- range(x, na.rm = TRUE)
+		     (x - rng[1]) / diff(rng)
+	     }
+	     emp2 <- ddply(emp, .(variable), transform, value = range01(value))
+	     #Regular plot
+	     qplot(date, value, data = emp2, geom = "line",colour =
+	     	     variable,
+				 linetype = variable)
+	     #faceted plot
+	     qplot(date, value, data = emp, geom = "line") +
+		    facet_grid(variable ~ ., scales = "free_y")
+
+	     ## Using the ggts package ##
+	     require(ggts)
+	     #Regular Plot
+	     ggts(economics, uempmed, unemploy)
+	     #Faceted plot
+	     ggts_facet(economics)
+		 #Add nber recessions cycles
+		 ggts_facet(economics) + geom_cycle()
+
+
 
 Chandler Lutz
 http://chandlerlutz.com/

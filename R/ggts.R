@@ -1,134 +1,170 @@
-##' Plot time series using ggts
-##'
-##' @param data the data to be plotted. Either a dataframe with first column labeled time (a date object), a ts or mts object, zoo object, or xts object. Intraday data is not currently supported
-##' @param variables a character of the variables to be graphed. Will be void if 'all' is set to TRUE. If set to NULL, the second element of the dataframe will be graphed.
-##' @param all flag variable. If set to TRUE, all variables will be graphed
-##' @param standardize if set to TRUE, all variables will be standardized to have zero mean and unit variance
-##' @param dates set to TRUE if the objects has dates. Default is TRUE
-##' @param names A character vector with the names that will be written in the legend
-##' @param bear set to TRUE if bear markets are to be shaded
-##' @param recession set to TRUE if recessions are to be shaded
-##' @param color Set to TRUE if the lines are to be of different colors
-##' @param palette A character vector xfor a color palette of the different lines. color must be set TRUE for palette to be relevent
-##' @param theme the theme for the graph.  Default is theme_bw()
-##' @param filename the location to save the graph
-##' @param dpi the dpi to use for raster graphics. 600 for publication quality graphics.
-##' @return a ggplot2 object
-##' @export
-##' @seealso \code{\link{ggts_facet}}
-##' @examples
-##' #plot the Dow Jones shading bear markets. DJIA is a dataframe
-##' data(djia.data)
-##' ggts(djia.data,bear=TRUE)
-##' #plot the Dow Jones shading bear markets and recessions
-##' #when both bear markets and recessions are shaded, the
-##' #bear markets will be blue and the recessions will be grey
-##' ggts(djia.data,bear=TRUE,recession=TRUE)
-##' #USMacroSW from the AER package is a "mts" object
-##' data("USMacroSW")
-##' ggts(USMacroSW,variables=c("ffrate","tbill","tbond"),color=TRUE,recession=TRUE,names=c("Fed Funds","T-Bill","T-Bond"))
-##' @author Chandler Lutz \email{cl.eco@@cbs.dk}
-ggts <- function(data,variables=NULL,all=FALSE,standardize=FALSE,
-                 dates=TRUE,names=NULL,bear=FALSE,recession=FALSE,
-                 color=FALSE,palette=NULL,theme=theme_bw(),
-                 filename=NULL,dpi=600) {
+#' Plot time series using ggts
+#'
+#' @param .data the data to be plotted. Either a dataframe with a time
+#'     column (e.g. a "Date", "POSIXlt", or "POSIXct" object), a ts or
+#'     mts object, zoo object, or xts object.
+#' @param ... arguments to be passed to dplyr select. If a dplyr
+#'     helper frunction is used, e.g. \code{matches}, dplyr must be
+#'     loaded or the function must be pasted via
+#'     \code{dplyr::matches("x")}
+#' @param linetype (logical) if TRUE, linetypes will be used
+#' @param color (logical) if TRUE, color will be used
+#' @param standardize (logical) If set to TRUE, all time series will
+#'     be standardized to have zero mean and unit variance before
+#'     plotting. Default is FALSE
+#' @param index (logical) If set to TRUE, all time series will be
+#'     tranformed into an index using \code{x / x[1] - 1}
+#'
+#' @return a \code{ggplot} of the time series
+#'
+#' @import ggplot2
+#' @importFrom dplyr "%>%"
+#' @importFrom dplyr starts_with
+#' @importFrom dplyr ends_with
+#' @importFrom dplyr contains
+#' @importFrom dplyr matches
+#' @importFrom dplyr num_range
+#' @importFrom dplyr one_of
+#' @importFrom dplyr everything
+#' @importFrom stats sd
+#' @importFrom stats is.ts
+#' @importFrom stats time
+#'
+#' @examples
+#' data(AirPassengers) ##A ts object
+#' ggts(AirPassengers)
+#'
+#' ## Interest rates from the Stock and Watson dataset
+#' library(AER)
+#' data(USMacroSW)  ##a mts object
+#' ggts(USMacroSW, ffrate, tbill, tbond)
+#' ##Interest rates with colors from the Stock and Watson dataset
+#' ggts(USMacroSW, ffrate, tbill, tbond, color = TRUE)
+#' ##Index values for CPI and Japanese GDP from SW datasets
+#' ggts(USMacroSW, cpi, gdpjp, index = TRUE)
+#' ##Standardized unemployment rate and Pound/Dollar exchange rate
+#' ggts(USMacroSW, cpi, gdpjp, standardize = TRUE)
+#'
+#' library(xts)
+#' data(AAPL.data) ##xts object
+#' ##Plot everything but volume using dplyr matches helper function.
+#' ##Note that all dplyr select helper functions can be used, but
+#' ##either dplyr must be attached or the package explicitly referenced
+#' ##(below example)
+#' ggts(AAPL.data, -dplyr::matches("Volume"))
+#'
+#' ##If we have a randomly placed time column
+#' USMacroSW2 <- as_ts_df(USMacroSW)[, c("ffrate", "tbill", "time", "tbond")]
+#' names(USMacroSW2)[3] <- "date"
+#' ggts(USMacroSW2)
+#'
+#' ##If more than 1 time column, ggts() will output a message
+#' ##saying that only the first time column will be used
+#' USMacroSW3 <- USMacroSW2
+#' USMacroSW3$date2 <- USMacroSW2$date
+#' ggts(USMacroSW3)
+#'
+#' ##Using a normal dataframe
+#' data(economics)
+#' ggts(economics, psavert, uempmed)
+#'
+#' @export
+ggts <- function(.data, ..., linetype = TRUE, color = FALSE, standardize = FALSE, index = FALSE) {
 
-    #load the data for the bear markets and recessions
-    data(bear_dates)
-    data(recession_dates)
-
-    shade_color <- c("#003F87","grey50")
-
-    if (!is.data.frame(data)) {
-
-        if (!(class(data)[1] %in% c("ts","mts","zoo","xts"))) {
-            stop("Data needs to be a dataframe, ts, mts, zoo, or xts object")
-        }
-
-        #Not a dataframe
-        #turn into a dataframe
-        if (dates) {
-            if (class(data) == "ts" || class(data) == "mts")
-                data <- as.ts.df(data)
-            else
-                data <- as.zoo.df(data)
-        } else {
-            data <- data.frame(time=time(data),data.frame(data))
-        }
-
+    ##if a ts object, get the name and process
+    if (class(.data)[1] == "ts") {
+        ts.name <- deparse(substitute(.data))
+        data.out <- tidy_ts(.data, ..., ts.name = ts.name)
+    } else {
+        data.out <- tidy_ts(.data, ..., ts.name = NULL)
     }
 
-    #Re-name the first column -- this should hold the dates
-    names(data)[1] <- "time"
 
-    #standardize if necessary
+    ##For SE with mutate_ see
+    ##https://www.r-bloggers.com/using-mutate-from-dplyr-inside-a-function-getting-around-non-standard-evaluation/
+    ##Set the formula first and then geive it a name
     if (standardize) {
-        if (ncol(data) == 2) {
-            data[,2] <- std(data[,2])
-        } else {
-            data[,2:ncol(data)] <- sapply(data[,2:ncol(data)],std)
-        }
+        ##Standardize the data
+        data.out <- data.out %>%
+            dplyr::group_by_("variable") %>%
+            dplyr::mutate_(.dots = stats::setNames(list( ~ (value - mean(value)) / sd(value)), "value")) %>%
+            dplyr::ungroup()
+    } else if (index) {
+        ##use a data index so that the variables start at 0
+        data.out <- data.out %>%
+            dplyr::group_by_(.dots = "variable") %>%
+            dplyr::mutate_(.dots = stats::setNames(list( ~ value/value[1] - 1), "value")) %>%
+            dplyr::ungroup()
     }
 
 
+    p.out <- ggplot2::ggplot(data.out, ggplot2::aes_string(x = "time", y = "value", group = "variable"))
 
-    if (all) {
-        #All variables will be graphed.
-        #We have to remove the first column which is for the time
-        variables <- names(data)[-1]
-    } else if (is.null(variables)) {
-        #If no variable is listed, grab the second element of the
-        #data frame
-        variables <- names(data)[2]
-    }
-    #The data should now be in a time series with a time column
-    plot <- ggplot(data,aes(x=time))
-    len <- length(variables)
-    for (i in 1:len) {
-        if (!is.null(names)) {
-            #names is defined! Use it
-            string <- paste('"',names[i],'"',sep="")
-        } else {
-            #names is not defined. use the variable
-            #name for the linetype
-            string <- paste('"',variables[[i]],'"',sep="")
-        }
-
-        if (color==TRUE) {
-            plot <- plot +
-                geom_line(aes_string(y=variables[[i]],
-                                     colour=string,
-                                     linetype=string))
-            if (!is.null(palette)) {
-                plot + scale_colour_manual(values=palette)
-            }
-        } else {
-            plot <- plot +
-                geom_line(aes_string(y=variables[[i]],
-                                     linetype=string))
-        }
-
-    }
-    plot <- plot + theme
-    #Limit the x scale
-    x_scale <- scale_x_date(lim=c(data$time[1],data$time[length(data$time)]))
-    plot <- plot + x_scale + theme(axis.title.y=element_blank(),
-                            legend.title=element_blank())
-    rng <- c(min(data$time),max(data$time))
-    if (bear && recession && dates) {
-        plot <- plot + shade(bear_dates,shade_color[1],xrng=rng)
-        plot <- plot + shade(recession_dates,shade_color[2],xrng=rng)
-    } else if (bear && dates) {
-        plot <- plot + shade(bear_dates,shade_color[1],xrng=rng)
-    } else if (recession && dates) {
-        plot <- plot + shade(recession_dates,shade_color[1],xrng=rng)
+    if (linetype && color) {
+        p.out <- p.out + ggplot2::geom_line(ggplot2::aes_string(linetype = "variable", color = "variable"))
+    } else if (linetype) {
+        p.out <- p.out + ggplot2::geom_line(ggplot2::aes_string(linetype = "variable"))
+    } else if (color) {
+        p.out <- p.out + ggplot2::geom_line(ggplot2::aes_string(color = "variable"))
+    } else {
+        p.out <- p.out + ggplot2::geom_line()
     }
 
-    if (!is.null(filename)) {
-        #save the file
-        ggsave(file=filename,plot=plot,dpi=dpi,width=7.82,
-               height=4.66)
-    }
+    ##Aesthetics
+    p.out <- p.out +
+        ggplot2::theme_bw() +
+        ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+              legend.title = ggplot2::element_blank())
 
-    return(plot)
+
+    return(p.out)
+
 }
+
+#' Plot a faceted time series -- multiple time series panels
+#'
+#' @param .data the data to be plotted. Either a dataframe with a time
+#'     column (e.g. a "Date", "POSIXlt", or "POSIXct" object), a ts or
+#'     mts object, zoo object, or xts object.
+#' @param ... arguments to be passed to dplyr select. If a dplyr
+#'     helper frunction is used, e.g. \code{matches}, dplyr must be
+#'     loaded or the function must be pasted via
+#'     \code{dplyr::matches("x")}
+#'
+#' @return a \code{ggplot} with the faceted time series
+#'
+#' @examples
+#' data(economis)
+#' ggts_facet(economics)
+#' ggts_facet(economics, psavert, uempmed)
+#'
+#' library(xts)
+#' data(AAPL.data) ##xts object
+#' ggts_facet(AAPL.data)
+#' ggts_facet(AAPL.data, -dplyr::matches("Volume"))
+#'
+#' library(AER)
+#' data(USMacroSW) ##mts object
+#' ggts_facet(USMacroSW)
+#'
+#' @export
+ggts_facet <- function(.data, ...) {
+
+    ##if a ts object, get the name and process
+    if (class(.data)[1] == "ts") {
+        ts.name <- deparse(substitute(.data))
+        data.out <- tidy_ts(.data, ..., ts.name)
+    } else {
+        data.out <- tidy_ts(.data, ...)
+    }
+
+    p.out <- ggplot2::ggplot(data.out, ggplot2::aes_string(x = "time", y = "value", group = "variable")) +
+        ggplot2::geom_line() +
+        ggplot2::facet_grid(variable ~ ., scales = "free_y") +
+        ggplot2::theme_bw()
+
+    return(p.out)
+
+}
+
+

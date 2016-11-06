@@ -1,6 +1,0 @@
-as.zoo.df <-
-function(data.zoo) {
-    df <- data.frame(time=time(data.zoo),data.frame(data.zoo))
-    row.names(df) <- NULL
-    return(df)
-}
