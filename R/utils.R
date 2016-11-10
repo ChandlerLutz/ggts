@@ -59,13 +59,10 @@ tidy_ts <- function(.data, ..., ts.name = NULL) {
     }
 
     ##make sure we only have numeric columns
-    data.out <- data.out %>%
-        ##Only keep numeric columns
-        dplyr::select_if(is.numeric)
+    data.out <- data.out[, vapply(data.out, is.numeric, logical(1)), drop = FALSE]
     ##the number of variables
     num.vars <- ncol(data.out)
-    ##gather using standard evaluation.
-    ##Note: we have to use the time column
+    ##gather
     data.out <- data.out %>%
         tidyr::gather_("variable", "value", names(data.out))
 

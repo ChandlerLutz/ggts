@@ -10,6 +10,11 @@ library(AER)
 data(AirPassengers)
 data("USMacroSW")
 data(AAPL.data)
+##With spaces in the names of variables
+USMacroSW2 <- as_ts_df(USMacroSW)
+names(USMacroSW2)[4] <- "fed funds"
+names(USMacroSW2)[5] <- "T Bill"
+
 
 df.data <- data.frame(x = 1:10, y = 11:20)
 
@@ -44,3 +49,7 @@ test_that("tidy_ts returns a data frame where the first column is time", {
 })
 
 
+##Test that tidy_ts works with dataframes that have spaces
+test_that("tidy_ts works with dataframes that have spaces in variable names", {
+    expect_is(tidy_ts(USMacroSW2), "data.frame")
+})

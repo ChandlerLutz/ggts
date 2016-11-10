@@ -20,6 +20,10 @@ names(USMacroSW2)[3] <- "date"
 ##A second random time column
 USMacroSW3 <- USMacroSW2
 USMacroSW3$date2 <- USMacroSW2$date
+##With spaces in the names of variables
+USMacroSW4 <- USMacroSW2
+names(USMacroSW4)[1] <- "fed funds"
+names(USMacroSW4)[2] <- "T Bill"
 
 test_that("ggts returns type plot for different objects", {
     expect_is(ggts(AAPL.data), "gg")
@@ -55,6 +59,11 @@ test_that("ggts (or ggts_facet()) + geom_cycle() returns type plot for differnt 
     expect_is(ggts_facet(USMacroSW) + geom_cycle(), "gg")
     expect_is(ggts_facet(USMacroSW) + geom_cycle(dates=bear_dates), "gg")
     ggts_facet(USMacroSW) + geom_cycle() + geom_cycle(dates=bear_dates, fill="grey50")
+})
+
+test_that("ggts() and ggts_facet() work when there are spaces in the variable names", {
+    expect_is(ggts(USMacroSW4), "gg")
+    expect_is(ggts_facet(USMacroSW4), "gg")
 })
 
 

@@ -97,7 +97,6 @@ ggts <- function(.data, ..., linetype = TRUE, color = FALSE, standardize = FALSE
             dplyr::ungroup()
     }
 
-
     p.out <- ggplot2::ggplot(data.out, ggplot2::aes_string(x = "time", y = "value", group = "variable"))
 
     if (linetype && color) {
