@@ -62,7 +62,8 @@ tidy_ts <- function(.data, ..., ts.name = NULL) {
     data.out <- data.out[, vapply(data.out, is.numeric, logical(1)), drop = FALSE]
     ##the number of variables
     num.vars <- ncol(data.out)
-    ##gather
+    ##gather -- use standard evaluation to comply
+    ##with CRAN checks
     data.out <- data.out %>%
         tidyr::gather_("variable", "value", names(data.out))
 

@@ -1,6 +1,6 @@
 Package: ggts
 Title: Easy time series visualization
-Version: 0.0.1.9000
+Version: 0.0.1.9001
 Authors@R: person("Chandler", "Lutz", email = "cl.eco@cbs.dk", role = c("aut", "cre"))
 Description: This package provides easy time series visualization via ggplot2.
     The ggts package plots ts, zoo, and xts objects; implements cycles (bear market,
