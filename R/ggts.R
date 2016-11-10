@@ -111,7 +111,6 @@ ggts <- function(.data, ..., linetype = TRUE, color = FALSE, standardize = FALSE
 
     ##Aesthetics
     p.out <- p.out +
-        ggplot2::theme_bw() +
         ggplot2::theme(axis.title.x = ggplot2::element_blank(),
               legend.title = ggplot2::element_blank())
 
@@ -159,8 +158,7 @@ ggts_facet <- function(.data, ...) {
 
     p.out <- ggplot2::ggplot(data.out, ggplot2::aes_string(x = "time", y = "value", group = "variable")) +
         ggplot2::geom_line() +
-        ggplot2::facet_grid(variable ~ ., scales = "free_y") +
-        ggplot2::theme_bw()
+        ggplot2::facet_grid(variable ~ ., scales = "free_y")
 
     return(p.out)
 
